@@ -34,6 +34,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # Application definition
 
 INSTALLED_APPS = [
+    'records.apps.RecordsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -76,10 +77,13 @@ WSGI_APPLICATION = 'auxgis2.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
+#https://code.djangoproject.com/ticket/26137
+SPATIALITE_LIBRARY_PATH = 'mod_spatialite'
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
+        'NAME': os.path.join(BASE_DIR, 'db.spatialite'),
     }
 }
 
