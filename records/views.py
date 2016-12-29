@@ -1,7 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.template import loader
-from django.shortcuts import get_object_or_404
+from django.contrib.gis.geos import GEOSGeometry
 from .models import Record, DatasetSnapshot, DatasetRecord
 import json
 
@@ -19,10 +19,19 @@ def record(request, record_id):
 def record_edit(request, record_id):
 	rec = get_object_or_404(Record, id=record_id)
 	ds = rec.datasetSeries
-	snapshots = DatasetSnapshot.objects.filter(datasetSeries = ds)
 
-	template = loader.get_template('records/record_edit.html')
-	return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 'snapshots': snapshots}, request))
+	try:
+		#Update record
+		rec.currentName = request.POST["name"]
+		rec.currentPosition = GEOSGeometry("POINT ({} {})".format(request.POST["lon"], request.POST["lat"]), srid=4326)
+		rec.save()		
+
+		template = loader.get_template('records/record_edit.html')
+		return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 'action_msg': "Record updated"}, request))
+
+	except KeyError:
+		template = loader.get_template('records/record_edit.html')
+		return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 'action_msg': None}, request))
 
 def original_record(request, record_id, snapshot_id):
 	rec = get_object_or_404(Record, id=record_id)
@@ -33,5 +42,6 @@ def original_record(request, record_id, snapshot_id):
 	original = json.loads(orig.dataJson)
 
 	template = loader.get_template('records/record_snapshot.html')
-	return HttpResponse(template.render({"record": rec, "snapshot": snapshot, "original": original}, request))
+	return HttpResponse(template.render({"record": rec, "snapshot": snapshot, 
+		'datasetSeries': datasetSeries, "original": original}, request))
 

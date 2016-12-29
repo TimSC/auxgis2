@@ -1,6 +1,6 @@
-{{record.currentName}}<br/>
+<h2>{{record.currentName}}</h2>
 <a href="/record/{{record.id}}">Current record</a><br/>
-{{snapshot.name}}<br/>
+Record {{record.externalId}} in {{snapshot.name}} of {{datasetSeries.name}}<br/>
 <table>
 {% for k, v in original.items %}
 <tr><td>{{k}}</td><td>{{v}}</td></tr>
