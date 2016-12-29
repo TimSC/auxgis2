@@ -21,4 +21,5 @@ To install spatialite: https://docs.djangoproject.com/en/1.10/ref/contrib/gis/in
 * sudo apt-get install libsqlite3-mod-spatialite
 * python manage.py migrate
 * python manage.py collectstatic
+* python manage.py createsuperuser
 
