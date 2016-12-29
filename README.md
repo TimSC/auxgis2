@@ -9,3 +9,12 @@ Attribute types can be: shape (WKB), description, access rights, operator, photo
 
 Plugins take a number of attributes and change how they are displayed to the user
 
+Useful commands
+===============
+
+To configure nginx, uWSGI, systemd: https://gist.github.com/TimSC/0193fa92d7fe5b63769eeca5c42fd5d5
+
+* python manage.py migrate
+* python manage.py collectstatic
+
+
