@@ -1,7 +1,8 @@
 {{record.currentName}}<br/>
+{{datasetSeries.name}}<br/>
 {{record.currentPosition}}<br/>
 {{record.externalId}}<br/>
 {% for snapshot in snapshots %}
 <a href="/record/{{record.id}}/snapshot/{{snapshot.id}}">{{snapshot.name}}</a><br/>
 {% endfor %}
-
+<a href="/record/{{record.id}}/edit">Edit</a>

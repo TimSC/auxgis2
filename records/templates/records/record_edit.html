@@ -1,0 +1,15 @@
+{{record.currentName}}<br/>
+{{datasetSeries.name}}<br/>
+<form method="post">
+{% csrf_token %}
+<table>
+<tr><td>Name</td><td><input type="text" name="current_name" value="{{record.currentName}}" /></td></tr>
+<tr><td>Lat</td><td><input type="text" name="current_lat" value="{{record.currentPosition.y}}" /></td></tr>
+<tr><td>Lon</td><td><input type="text" name="current_lon" value="{{record.currentPosition.x}}" /></td></tr>
+</table>
+
+<input type="submit" value="Update" />
+</form>
+
+<a href="/record/{{record.id}}">View</a>
+
