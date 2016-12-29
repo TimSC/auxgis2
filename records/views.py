@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.template import loader
 from .models import Record
 
 def index(request):
@@ -8,5 +9,7 @@ def index(request):
 def record(request, record_id):
 	rec = Record.objects.get(id=record_id)
 
-	return HttpResponse("Record %s." % rec.currentName)
+	template = loader.get_template('records/record.html')
+
+	return HttpResponse(template.render({"record": rec}, request))
 
