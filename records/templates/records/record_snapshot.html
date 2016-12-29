@@ -1,0 +1,8 @@
+{{record.currentName}}<br/>
+<a href="/record/{{record.id}}">Current record</a><br/>
+{{snapshot.name}}<br/>
+<table>
+{% for k, v in original.items %}
+<tr><td>{{k}}</td><td>{{v}}</td></tr>
+{% endfor %}
+</table>
