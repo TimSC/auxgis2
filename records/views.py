@@ -6,7 +6,10 @@ from .models import Record, DatasetSnapshot, DatasetRecord
 import json
 
 def index(request):
-	return HttpResponse("Hello, world. You're at the index.")
+	recs = Record.objects.all()[:10]
+
+	template = loader.get_template('records/index.html')
+	return HttpResponse(template.render({"records": recs}, request))
 
 def record(request, record_id):
 	rec = get_object_or_404(Record, id=record_id)
