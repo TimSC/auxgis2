@@ -41,7 +41,7 @@ class AttributeType(models.Model):
 	datasetSeries = models.ForeignKey(DatasetSeries, on_delete=models.CASCADE)
 
 	def __str__(self):
-		return "AttributeType "+self.externalId
+		return "AttributeType "+self.name
 
 class RecordTextAttribute(models.Model):
 	record = models.ForeignKey(Record, on_delete=models.CASCADE)
@@ -51,6 +51,6 @@ class RecordTextAttribute(models.Model):
 	user = models.ForeignKey(User)
 
 	def __str__(self):
-		return "RecordTextAttribute "+self.externalId
+		return "RecordTextAttribute "+self.record.currentName + "," + self.attrib.name
 
 

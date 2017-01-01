@@ -1,0 +1,20 @@
+{% include "registration/account.html" %}
+
+<h2>{{datasetSeries.name}}</h2>
+<p>{{datasetSeries.description}}</p>
+<p>{{datasetSeries.license}}</p>
+<h3>Snapshots</h3>
+<table>
+{% for snapshot in snapshots %}
+<tr><td>{{snapshot.name}}</td><td>{{snapshot.description}}</td></tr>
+{% endfor %}
+</table>
+
+<h3>Attributes</h3>
+<table>
+{% for attrib in attribs %}
+<tr><td>{{attrib.name}}</td><td>{{attrib.attribType}}</td></tr>
+{% endfor %}
+</table>
+
+<a href="/">Home</a>

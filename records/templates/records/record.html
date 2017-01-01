@@ -5,12 +5,24 @@
 {% include "registration/account.html" %}
 
 <h2>{{record.currentName}}</h2>
-{{datasetSeries.name}}<br/>
-{{record.currentPosition}}<br/>
-{{record.externalId}}<br/>
-{% for snapshot in snapshots %}
-<a href="/record/{{record.id}}/snapshot/{{snapshot.id}}">{{snapshot.name}}</a><br/>
+<a href="/datasetseries/{{datasetSeries.id}}">{{datasetSeries.name}}</a><br/>
+<table>
+<tr><td>Position</td><td>{{record.currentPosition}}</td></tr>
+<tr><td>External ID</td><td>{{record.externalId}}</td></tr>
+
+{% for k, v in annotations.items %}
+<tr><td>{{k}}</td><td>{{v.data}}</td></tr>
 {% endfor %}
+
+</table>
+
+<h3>Snapshots</h3>
+<ul>
+{% for snapshot in snapshots %}
+<li><a href="/record/{{record.id}}/snapshot/{{snapshot.id}}">{{snapshot.name}}</a></li>
+{% endfor %}
+</ul>
+
 {% if user.is_authenticated %}
 <a href="/record/{{record.id}}/edit">Edit</a></br>
 {% endif %}

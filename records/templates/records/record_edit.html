@@ -1,16 +1,21 @@
 {% include "registration/account.html" %}
 
 <h2>{{record.currentName}}</h2>
-{{datasetSeries.name}}<br/>
+<a href="/datasetseries/{{datasetSeries.id}}">{{datasetSeries.name}}</a><br/>
 {% if action_msg %}
 <h3>{{action_msg}}</h3>
 {% endif %}
 <form method="post">
 {% csrf_token %}
 <table>
-<tr><td>Name</td><td><input type="text" name="name" value="{{record.currentName}}" /></td></tr>
+<tr><td>Name</td><td><input type="text" name="name" value="{{record.currentName}}" size="100"/></td></tr>
 <tr><td>Lat</td><td><input type="text" name="lat" value="{{record.currentPosition.y}}" /></td></tr>
 <tr><td>Lon</td><td><input type="text" name="lon" value="{{record.currentPosition.x}}" /></td></tr>
+
+{% for k, v in annotations.items %}
+<tr><td>{{k}}</td><td><input type="text" name="attrib{{v.attrib.id}}" value="{{v.data}}" size="100"/></td></tr>
+{% endfor %}
+
 </table>
 
 <input type="submit" name="action" value="Update" />

@@ -9,9 +9,10 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from .models import Record, DatasetSnapshot, DatasetRecord
+from .models import Record, DatasetSnapshot, DatasetRecord, DatasetSeries, AttributeType, RecordTextAttribute
 import json
 import re
+import datetime
 
 def index(request):
 	recs = Record.objects.all()[:100]
@@ -32,27 +33,79 @@ def record(request, record_id):
 	rec = get_object_or_404(Record, id=record_id)
 	ds = rec.datasetSeries
 	snapshots = DatasetSnapshot.objects.filter(datasetSeries = ds)
+	annotations = RecordTextAttribute.objects.filter(record = rec).order_by('timestamp')
+	attribs = AttributeType.objects.filter(datasetSeries = ds)
+
+	#Consolidate annotations
+	latestAttribs = {}
+	for attrib in attribs:
+		latestAttribs[attrib.name] = None
+	for annotation in annotations:
+		latestAttribs[annotation.attrib.name] = annotation
 
 	template = loader.get_template('records/record.html')
-	return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 'snapshots': snapshots}, request))
+	return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 
+		'snapshots': snapshots, 'annotations': latestAttribs}, request))
 
 @login_required
 def record_edit(request, record_id):
 	rec = get_object_or_404(Record, id=record_id)
 	ds = rec.datasetSeries
+	annotations = RecordTextAttribute.objects.filter(record = rec).order_by('timestamp')
+	attribs = AttributeType.objects.filter(datasetSeries = ds)
+	attribsById = {}
+	for attrib in attribs:
+		attribsById[attrib.id] = attrib
+
+	#Consolidate annotations
+	latestAttribs = {}
+	for attrib in attribs:
+		latestAttribs[attrib.name] = None
+	for annotation in annotations:
+		latestAttribs[annotation.attrib.name] = annotation
 
 	try:
 		#Update record
-		rec.currentName = request.POST["name"]
-		rec.currentPosition = GEOSGeometry("POINT ({} {})".format(request.POST["lon"], request.POST["lat"]), srid=4326)
-		rec.save()		
+		changed = False
+		actionMessage = "No change to record"
+
+		if request.POST["name"] != rec.currentName:
+			rec.currentName = request.POST["name"]
+			changed = True
+
+		if float(request.POST["lon"]) != rec.currentPosition.x or float(request.POST["lat"]) != rec.currentPosition.y:
+			rec.currentPosition = GEOSGeometry("POINT ({} {})".format(request.POST["lon"], request.POST["lat"]), srid=4326)
+			changed = True
+
+		timeNow = datetime.datetime.now()
+		for k in request.POST:
+			if k[:6] != "attrib": continue
+			attribId = int(k[6:])
+			formAttrib = attribsById[attribId]
+
+			if request.POST[k] != latestAttribs[formAttrib.name]:
+				changed = True
+				newAnnot = RecordTextAttribute(record = rec,
+					attrib = formAttrib,
+					data = request.POST[k],
+					timestamp = timeNow,	
+					user = request.user)
+				newAnnot.save()
+				latestAttribs[formAttrib.name] = newAnnot
+
+		if changed:
+			rec.save()		
+			actionMessage = "Record updated"
 
 		template = loader.get_template('records/record_edit.html')
-		return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 'action_msg': "Record updated"}, request))
+		return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 
+			'action_msg': actionMessage, 'annotations': latestAttribs}, request))
 
 	except KeyError:
+
 		template = loader.get_template('records/record_edit.html')
-		return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 'action_msg': None}, request))
+		return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 
+			'action_msg': None, 'annotations': latestAttribs}, request))
 
 def original_record(request, record_id, snapshot_id):
 	rec = get_object_or_404(Record, id=record_id)
@@ -138,4 +191,13 @@ def register(request):
 	return HttpResponse(template.render({"actionMessage": actionMessage, 
 		"reqUsername": reqUsername, "reqEmail": reqEmail, 
 		"reqPassword": reqPassword, "registerSuccess": registerSuccess}, request))
+
+def dataset_series(request, dataset_series_id):
+	ds = get_object_or_404(DatasetSeries, id=dataset_series_id)
+	snapshots = DatasetSnapshot.objects.filter(datasetSeries = ds)
+	attribs = AttributeType.objects.filter(datasetSeries = ds)
+	
+	template = loader.get_template('records/dataset_series.html')
+	return HttpResponse(template.render({"datasetSeries": ds, "snapshots": snapshots,
+		"attribs": attribs}, request))
 
