@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.template import loader
 from django.contrib.gis.geos import GEOSGeometry
 from .models import Record, DatasetSnapshot, DatasetRecord
@@ -47,4 +47,28 @@ def original_record(request, record_id, snapshot_id):
 	template = loader.get_template('records/record_snapshot.html')
 	return HttpResponse(template.render({"record": rec, "snapshot": snapshot, 
 		'datasetSeries': datasetSeries, "original": original}, request))
+
+def records_query(request):
+	try:
+		bbox = map(float, request.GET["bbox"].split(","))
+	except ValueError:
+		return HttpResponseBadRequest("Bad bbox")
+	try:
+		geomStr = 'POLYGON(( {0} {1}, {0} {3}, {2} {3}, {2} {1}, {0} {1} ))'.format(*bbox)
+	except IndexError:
+		return HttpResponseBadRequest("Bad bbox length")
+		
+	geom = GEOSGeometry(geomStr, srid=4326)
+	recs = Record.objects.filter(currentPosition__within=geom)[:100]
+
+	output = []
+	for rec in recs:
+		jrec = {}
+		jrec["id"] = rec.id		
+		jrec["name"] = rec.currentName		
+		jrec["lat"] = rec.currentPosition.y
+		jrec["lon"] = rec.currentPosition.x
+		output.append(jrec)
+
+	return JsonResponse(output, safe=False)	
 

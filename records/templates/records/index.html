@@ -59,7 +59,11 @@ function loadPage() {
 	}
 
 	function onMapMoveEnd(e) {
-		dragTimeout = setTimeout(function(){ alert("Move end"+map.getBounds().getCenter()); }, 3000);
+		dragTimeout = setTimeout(function(){ updatePois(map.getBounds()) }, 3000);
+	}
+
+	function updatePois(bbox) {
+		//alert("updatePois "+bbox.getCenter());
 	}
 
 	L.tileLayer('http://draco.openstreetmap.org/sv-2013-11/{z}/{x}/{y}.png', {
