@@ -1,0 +1,29 @@
+
+{% block content %}
+
+{% include "registration/account.html" %}
+
+<h2>Register new user</h2>
+
+{% if actionMessage %}
+<p>{{actionMessage}}</p>
+{% endif%}
+
+{% if not registerSuccess %}
+<form method="POST">
+{% csrf_token %}
+
+<table>
+<tr><td>User name</td><td><input type="text" name="username" value="{{reqUsername}}"/></td></tr>
+<tr><td>Email</td><td><input type="text" name="email" value="{{reqEmail}}"/></td></tr>
+<tr><td>Password</td><td><input type="password" name="password" value="{{reqPassword}}"/></td></tr>
+</table>
+
+<input type="submit" name="action" value="Register"/>
+
+</form>
+{% endif %}
+
+<a href="/">Home</a>
+{% endblock %}
+
