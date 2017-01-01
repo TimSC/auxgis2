@@ -16,6 +16,11 @@
 
 </table>
 
+{% if user.is_authenticated %}
+<a href="/record/{{record.id}}/edit">Edit</a></br>
+{% endif %}
+<a href="/record/{{record.id}}/history">History</a>
+
 <h3>Snapshots</h3>
 <ul>
 {% for snapshot in snapshots %}
@@ -23,9 +28,6 @@
 {% endfor %}
 </ul>
 
-{% if user.is_authenticated %}
-<a href="/record/{{record.id}}/edit">Edit</a></br>
-{% endif %}
 <a href="/">Home</a>
 
 </body>

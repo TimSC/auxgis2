@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from .models import Record, DatasetSnapshot, DatasetRecord, DatasetSeries, AttributeType, RecordTextAttribute
+from .models import Record, DatasetSnapshot, DatasetRecord, DatasetSeries, AttributeType, RecordTextAttribute, RecordNameEdit, RecordPositionEdit
 import json
 import re
 import datetime
@@ -60,30 +60,43 @@ def record_edit(request, record_id):
 	#Consolidate annotations
 	latestAttribs = {}
 	for attrib in attribs:
-		latestAttribs[attrib.name] = None
+		latestAttribs[attrib.name] = (None, attrib)
 	for annotation in annotations:
-		latestAttribs[annotation.attrib.name] = annotation
+		latestAttribs[annotation.attrib.name] = (annotation, annotation.attrib)
 
 	try:
 		#Update record
 		changed = False
 		actionMessage = "No change to record"
+		timeNow = datetime.datetime.now()
 
 		if request.POST["name"] != rec.currentName:
 			rec.currentName = request.POST["name"]
 			changed = True
+			newAnnot = RecordNameEdit(record = rec,
+				data = request.POST["name"], 
+				timestamp = timeNow,
+				user = request.user)
+			newAnnot.save()
 
 		if float(request.POST["lon"]) != rec.currentPosition.x or float(request.POST["lat"]) != rec.currentPosition.y:
-			rec.currentPosition = GEOSGeometry("POINT ({} {})".format(request.POST["lon"], request.POST["lat"]), srid=4326)
+			pos = GEOSGeometry("POINT ({} {})".format(request.POST["lon"], request.POST["lat"]), srid=4326)
+			rec.currentPosition = pos
 			changed = True
+			newAnnot = RecordPositionEdit(record = rec,
+				data = pos, 
+				timestamp = timeNow,
+				user = request.user)
+			newAnnot.save()
 
-		timeNow = datetime.datetime.now()
 		for k in request.POST:
 			if k[:6] != "attrib": continue
 			attribId = int(k[6:])
 			formAttrib = attribsById[attribId]
 
-			if request.POST[k] != latestAttribs[formAttrib.name]:
+			if (latestAttribs[formAttrib.name][0] is None and len(request.POST[k]) > 0) or \
+				request.POST[k] != latestAttribs[formAttrib.name][0].data:
+
 				changed = True
 				newAnnot = RecordTextAttribute(record = rec,
 					attrib = formAttrib,
@@ -91,7 +104,7 @@ def record_edit(request, record_id):
 					timestamp = timeNow,	
 					user = request.user)
 				newAnnot.save()
-				latestAttribs[formAttrib.name] = newAnnot
+				latestAttribs[formAttrib.name] = (newAnnot, formAttrib)
 
 		if changed:
 			rec.save()		
@@ -170,11 +183,8 @@ def register(request):
 
 		user = User.objects.create_user(reqUsername, reqEmail, reqPassword)
 		user.save()
-		if user is not None:
-			login(request, user)
-			actionMessage = "New user registered!"
-		else:
-			actionMessage = "New user registered! Automatic log in failed!"
+		login(request, user)
+		actionMessage = "New user registered!"
 		registerSuccess = True
 	except MultiValueDictKeyError:
 		pass
@@ -200,4 +210,31 @@ def dataset_series(request, dataset_series_id):
 	template = loader.get_template('records/dataset_series.html')
 	return HttpResponse(template.render({"datasetSeries": ds, "snapshots": snapshots,
 		"attribs": attribs}, request))
+
+def record_history(request, record_id):
+	rec = get_object_or_404(Record, id=record_id)
+	ds = rec.datasetSeries
+	snapshots = DatasetSnapshot.objects.filter(datasetSeries = ds)
+	annotations = RecordTextAttribute.objects.filter(record = rec)
+	nameEdits = RecordNameEdit.objects.filter(record = rec)
+	positionEdits = RecordPositionEdit.objects.filter(record = rec)
+	attribs = AttributeType.objects.filter(datasetSeries = ds)
+
+	#Combine edits and sort by time stamp
+	sortableEdits = []
+	for edit in annotations:
+		edit.attribName = edit.attrib.name
+		sortableEdits.append((edit.timestamp, edit))
+	for edit in nameEdits:
+		edit.attribName = "name"
+		sortableEdits.append((edit.timestamp, edit))
+	for edit in positionEdits:
+		edit.attribName = "position"
+		sortableEdits.append((edit.timestamp, edit))
+	sortableEdits.sort()
+	edits = [tmp[1] for tmp in sortableEdits]
+
+	template = loader.get_template('records/record_history.html')
+	return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 
+		'snapshots': snapshots, 'edits': edits}, request))
 

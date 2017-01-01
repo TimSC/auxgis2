@@ -53,4 +53,21 @@ class RecordTextAttribute(models.Model):
 	def __str__(self):
 		return "RecordTextAttribute "+self.record.currentName + "," + self.attrib.name
 
+class RecordNameEdit(models.Model):
+	record = models.ForeignKey(Record, on_delete=models.CASCADE)
+	data = models.TextField("data")
+	timestamp = models.DateTimeField('timestamp')	
+	user = models.ForeignKey(User)
+
+	def __str__(self):
+		return "RecordNameEdits "+self.record.currentName + ", name"
+
+class RecordPositionEdit(models.Model):
+	record = models.ForeignKey(Record, on_delete=models.CASCADE)
+	data = models.PointField("data")
+	timestamp = models.DateTimeField('timestamp')	
+	user = models.ForeignKey(User)
+
+	def __str__(self):
+		return "RecordPositionEdit "+self.record.currentName + ", position"
 

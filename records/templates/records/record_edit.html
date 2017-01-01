@@ -13,12 +13,13 @@
 <tr><td>Lon</td><td><input type="text" name="lon" value="{{record.currentPosition.x}}" /></td></tr>
 
 {% for k, v in annotations.items %}
-<tr><td>{{k}}</td><td><input type="text" name="attrib{{v.attrib.id}}" value="{{v.data}}" size="100"/></td></tr>
+<tr><td>{{k}}</td><td><input type="text" name="attrib{{v.1.id}}" value="{{v.0.data}}" size="100"/></td></tr>
 {% endfor %}
 
 </table>
 
 <input type="submit" name="action" value="Update" />
 </form>
+<a href="/record/{{record.id}}/history">History</a><br/>
 <a href="/record/{{record.id}}">View</a>
 

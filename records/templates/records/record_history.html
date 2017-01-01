@@ -1,0 +1,17 @@
+{% include "registration/account.html" %}
+
+<h2>{{record.currentName}}</h2>
+<a href="/datasetseries/{{datasetSeries.id}}">{{datasetSeries.name}}</a><br/>
+{% if action_msg %}
+<h3>{{action_msg}}</h3>
+{% endif %}
+<table>
+
+{% for edit in edits %}
+<tr><td>{{edit.attribName}}</td><td>{{edit.data}}</td><td>{{edit.user}}</td><td>{{edit.timestamp}}</td></tr>
+{% endfor %}
+
+</table>
+
+<a href="/record/{{record.id}}">View</a>
+
