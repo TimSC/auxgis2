@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"/> 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 </head>
 
 <body onload="loadPage()">
@@ -11,13 +12,11 @@
 
 <div id="map" style="height:380px;"></div>
 
-<table>
+<table id="resulttable">
 {% for record in records %}
 <tr><td><a href="/record/{{record.id}}">{{record.currentName}}</a></td></tr>
 {% endfor %}
 </table>
-
-<div id="demo">Demo</div>
 
 <script>
 function loadPage() {
@@ -27,11 +26,6 @@ function loadPage() {
 
 <script>
 	var map = L.map('map').setView([53.0, -1.0], 7);
-
-    //var RedIcon = L.Icon.extend({
-	//options: {iconUrl: '/static/gis/marker-icon-red.png'}
-	//});
-	//var redIcon = new RedIcon();
 
 	var markerGroup = L.layerGroup()
 {%for record in records%}
@@ -76,14 +70,28 @@ function loadPage() {
 		}
 	}
 
+	function setTableResults(results){
+		var resultTable = document.getElementById("resulttable");
+		resultTable.innerHTML = "";
+		var resultsLen = results.length;
+		for (var i = 0; i < resultsLen; i++) {
+			var record = results[i];
+			var tr = $('<tr/>').appendTo(resultTable);
+			var td = $('<td/>').appendTo(tr);
+			var alink = $('<a/>').text(record.name).appendTo(td);
+			alink.attr('href', "/record/"+record.id);
+		}
+	}
+
 	function updatePois(bbox) {
 		//alert("updatePois "+bbox.getCenter());
 		var xhttp = new XMLHttpRequest();
 		xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			var results = JSON.parse(this.responseText);
-			//document.getElementById("demo").innerHTML = this.responseText;
 			setMapMarkers(results)
+			setTableResults(results)
+
 		}
 		};
 		xhttp.open("GET", "/query?bbox="+bbox.getWest()+","+bbox.getSouth()+","+bbox.getEast()+","+bbox.getNorth(), true);
