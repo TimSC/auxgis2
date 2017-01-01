@@ -6,10 +6,19 @@ from .models import Record, DatasetSnapshot, DatasetRecord
 import json
 
 def index(request):
-	recs = Record.objects.all()[:10]
+	recs = Record.objects.all()[:100]
+
+	output = []
+	for rec in recs:
+		jrec = {}
+		jrec["id"] = rec.id		
+		jrec["name"] = rec.currentName		
+		jrec["lat"] = rec.currentPosition.y
+		jrec["lon"] = rec.currentPosition.x
+		output.append(jrec)
 
 	template = loader.get_template('records/index.html')
-	return HttpResponse(template.render({"records": recs}, request))
+	return HttpResponse(template.render({"records": recs, "recordsJson": json.dumps(output)}, request))
 
 def record(request, record_id):
 	rec = get_object_or_404(Record, id=record_id)

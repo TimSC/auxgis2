@@ -13,9 +13,6 @@
 <div id="map" style="height:380px;"></div>
 
 <table id="resulttable">
-{% for record in records %}
-<tr><td><a href="/record/{{record.id}}">{{record.currentName}}</a></td></tr>
-{% endfor %}
 </table>
 
 <script>
@@ -28,14 +25,11 @@ function loadPage() {
 	var map = L.map('map').setView([53.0, -1.0], 7);
 
 	var markerGroup = L.layerGroup()
-{%for record in records%}
-	var marker{{record.id}} = L.marker([{{record.currentPosition.y}}, {{record.currentPosition.x}}]);
-	markerGroup.addLayer(marker{{record.id}})
-{%endfor%}
-{%for record in records%}
-	marker{{record.id}}.bindPopup("<a href='record/{{record.id}}'>{{record.currentName}}</a>")
-{%endfor%}
 	markerGroup.addTo(map)
+
+	var initialMarkers = {% autoescape off %}{{recordsJson}}{% endautoescape %};
+	setMapMarkers(initialMarkers);
+	setTableResults(initialMarkers);
 
 	var dragZoomTimeout;
 
