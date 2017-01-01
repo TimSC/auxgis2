@@ -38,10 +38,28 @@ function loadPage() {
 	marker{{record.id}}.bindPopup("<a href='record?record={{record.id}}'>{{record.currentName}}</a>")
 {%endfor%}
 
+	var dragTimeout;
+
 	function onMapClick(e) {
 		//alert("You clicked the map at " + e.latlng);
 		//document.getElementById('lat').value=e.latlng.lat;
 		//document.getElementById('lon').value=e.latlng.lng;  
+	}
+
+	function onMapZoomStart(e) {
+
+	}
+
+	function onMapZoomEnd(e) {
+
+	}
+
+	function onMapMoveStart(e) {
+		clearTimeout(dragTimeout);
+	}
+
+	function onMapMoveEnd(e) {
+		dragTimeout = setTimeout(function(){ alert("Move end"+map.getBounds().getCenter()); }, 3000);
 	}
 
 	L.tileLayer('http://draco.openstreetmap.org/sv-2013-11/{z}/{x}/{y}.png', {
@@ -50,6 +68,10 @@ function loadPage() {
 	}).addTo(map);
 
 	map.on('click', onMapClick);
+	map.on('zoomstart', onMapZoomStart);
+	map.on('zoomend ', onMapZoomEnd);
+	map.on('movestart', onMapMoveStart);
+	map.on('moveend ', onMapMoveEnd);
 
 </script>
 
