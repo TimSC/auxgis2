@@ -17,6 +17,8 @@
 {% endfor %}
 </table>
 
+<div id="demo">Demo</div>
+
 <script>
 function loadPage() {
 
@@ -31,39 +33,61 @@ function loadPage() {
 	//});
 	//var redIcon = new RedIcon();
 
+	var markerGroup = L.layerGroup()
 {%for record in records%}
-	var marker{{record.id}} = L.marker([{{record.currentPosition.y}}, {{record.currentPosition.x}}]).addTo(map);
+	var marker{{record.id}} = L.marker([{{record.currentPosition.y}}, {{record.currentPosition.x}}]);
+	markerGroup.addLayer(marker{{record.id}})
 {%endfor%}
 {%for record in records%}
-	marker{{record.id}}.bindPopup("<a href='record?record={{record.id}}'>{{record.currentName}}</a>")
+	marker{{record.id}}.bindPopup("<a href='record/{{record.id}}'>{{record.currentName}}</a>")
 {%endfor%}
+	markerGroup.addTo(map)
 
-	var dragTimeout;
+	var dragZoomTimeout;
 
 	function onMapClick(e) {
-		//alert("You clicked the map at " + e.latlng);
-		//document.getElementById('lat').value=e.latlng.lat;
-		//document.getElementById('lon').value=e.latlng.lng;  
 	}
 
 	function onMapZoomStart(e) {
-
+		clearTimeout(dragZoomTimeout);
 	}
 
 	function onMapZoomEnd(e) {
-
+		dragZoomTimeout = setTimeout(function(){ updatePois(map.getBounds()) }, 1000);
 	}
 
 	function onMapMoveStart(e) {
-		clearTimeout(dragTimeout);
+		clearTimeout(dragZoomTimeout);
 	}
 
 	function onMapMoveEnd(e) {
-		dragTimeout = setTimeout(function(){ updatePois(map.getBounds()) }, 3000);
+		dragZoomTimeout = setTimeout(function(){ updatePois(map.getBounds()) }, 1000);
+	}
+
+	function setMapMarkers(results){
+		markerGroup.clearLayers()		
+		var resultsLen = results.length;
+		for (var i = 0; i < resultsLen; i++) {
+			var record = results[i];
+
+			var marker = L.marker([record.lat, record.lon]);
+			marker.bindPopup("<a href='record/"+record.id+"'>"+record.name+"</a>")
+			markerGroup.addLayer(marker)
+		}
 	}
 
 	function updatePois(bbox) {
 		//alert("updatePois "+bbox.getCenter());
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			var results = JSON.parse(this.responseText);
+			//document.getElementById("demo").innerHTML = this.responseText;
+			setMapMarkers(results)
+		}
+		};
+		xhttp.open("GET", "/query?bbox="+bbox.getWest()+","+bbox.getSouth()+","+bbox.getEast()+","+bbox.getNorth(), true);
+		xhttp.send();
 	}
 
 	L.tileLayer('http://draco.openstreetmap.org/sv-2013-11/{z}/{x}/{y}.png', {
