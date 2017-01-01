@@ -22,6 +22,8 @@ import django
 django.setup()
 from records.models import *
 import django.core.exceptions as dex
+import datetime
+from django.contrib.auth.models import User
 
 def TitleCase(txt):
 	txtSpl = txt.split(" ")
@@ -30,6 +32,8 @@ def TitleCase(txt):
 
 class Db(object):
 	def __init__(self):
+		self.importTime = datetime.datetime.now()
+		self.importUser = User.objects.get(username='tim')
 		try:
 			self.ds = DatasetSeries.objects.get(name="Scheduled Monuments (England)")
 		except dex.ObjectDoesNotExist:
@@ -66,11 +70,24 @@ class Db(object):
 		try:
 			rec2 = Record.objects.get(externalId = externalId)
 		except dex.ObjectDoesNotExist:
+			pos = GEOSGeometry(str(rp), srid=4326)
 			rec2 = Record(currentName = placeName, 
-				currentPosition = GEOSGeometry(str(rp), srid=4326),
+				currentPosition = pos,
 				datasetSeries = self.ds,
 				externalId = externalId)
 			rec2.save()
+
+			newAnnot = RecordNameEdit(record = rec2,
+				data = placeName, 
+				timestamp = self.importTime,
+				user = self.importUser)
+			newAnnot.save()
+
+			newAnnot = RecordPositionEdit(record = rec2,
+				data = pos, 
+				timestamp = self.importTime,
+				user = self.importUser)
+			newAnnot.save()
 
 class ParseKml(object):
 	def __init__(self):
