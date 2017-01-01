@@ -53,6 +53,15 @@ class RecordTextAttribute(models.Model):
 	def __str__(self):
 		return "RecordTextAttribute "+self.record.currentName + "," + self.attrib.name
 
+class RecordShapeEdit(models.Model):
+	record = models.ForeignKey(Record, on_delete=models.CASCADE)
+	data = models.GeometryCollectionField("data")
+	timestamp = models.DateTimeField('timestamp')
+	user = models.ForeignKey(User)
+
+	def __str__(self):
+		return "RecordTextAttribute "+self.record.currentName + "," + self.attrib.name
+
 class RecordNameEdit(models.Model):
 	record = models.ForeignKey(Record, on_delete=models.CASCADE)
 	data = models.TextField("data")
