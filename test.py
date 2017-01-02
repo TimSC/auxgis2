@@ -70,6 +70,7 @@ def test(shapeWkt):
 	shape2 = GeometryCollection([shape])
 	shape3 = GEOSGeometry(buffer(shape2.wkb), srid=4326)
 	print shape3.valid
+	print shape3.wkt
 
 	newAnnot = RecordShapeEdit(record = rec2,
 		data = shape3, 
