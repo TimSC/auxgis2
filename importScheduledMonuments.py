@@ -96,16 +96,19 @@ class Db(object):
 				user = self.importUser)
 			newAnnot.save()
 
-			if not shape.is_valid:
-				shape = shape.buffer(0.0)
-			shape2 = GeometryCollection([shape])
-			shape3 = GEOSGeometry(buffer(shape2.wkb), srid=4326)
+			if False: 
+				#Disable shape import until 
+				#https://code.djangoproject.com/ticket/27672 is resolved
+				if not shape.is_valid:
+					shape = shape.buffer(0.0)
+				shape2 = GeometryCollection([shape])
+				shape3 = GEOSGeometry(buffer(shape2.wkb), srid=4326)
 
-			newAnnot = RecordShapeEdit(record = rec2,
-				data = shape3, 
-				timestamp = self.importTime,
-				user = self.importUser)
-			newAnnot.save()
+				newAnnot = RecordShapeEdit(record = rec2,
+					data = shape3, 
+					timestamp = self.importTime,
+					user = self.importUser)
+				newAnnot.save()
 			
 class ParseKml(object):
 	def __init__(self):
