@@ -31,40 +31,6 @@ def TitleCase(txt):
 	txtSpl = [tmp.capitalize() for tmp in txtSpl]
 	return " ".join(txtSpl)
 
-class DbOld(object):
-	def __init__(self):
-		self.conn = sqlite3.connect('auxgis.db')
-		self.cursor = self.conn.cursor()
-		self.source = "ListedBuildings"
-
-	def __del__(self):
-		self.conn.commit()
-
-	def HandlePlacemark(self, placeName, shape, extendedData):
-		#print placeName, shape
-		#print extendedData
-		
-		#Remove unnecessary info
-		del extendedData["Easting"]
-		del extendedData["Northing"]
-		del extendedData["NGR"]
-
-		repPoint = None
-		if shape is not None:
-			tmp = shape.representative_point()
-			repPoint = tuple(tmp.coords[0])
-
-		extendedData["lat"] = repPoint[1]
-		extendedData["lon"] = repPoint[0]
-		extendedJson = json.dumps(extendedData)
-
-		sql = "INSERT INTO data (name, source, lat, lon, extended) VALUES (?,?,?,?,?);"
-		self.cursor.execute(sql, (placeName, self.source, repPoint[1], repPoint[0], extendedJson))
-
-		lid = self.cursor.lastrowid
-		sql = "INSERT INTO pos (id, minLat, maxLat, minLon, maxLon) VALUES (?,?,?,?,?);"
-		self.cursor.execute(sql, (lid, repPoint[1], repPoint[1], repPoint[0], repPoint[0]))
-
 class Db(object):
 	def __init__(self):
 		self.importTime = datetime.datetime.now()
