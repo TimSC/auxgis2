@@ -96,9 +96,9 @@ class Db(object):
 				user = self.importUser)
 			newAnnot.save()
 
-			if False: 
-				#Disable shape import until 
-				#https://code.djangoproject.com/ticket/27672 is resolved
+			if True: 
+				#Can't do this on spatialite 
+				#https://code.djangoproject.com/ticket/27672
 				if not shape.is_valid:
 					shape = shape.buffer(0.0)
 				shape2 = GeometryCollection([shape])

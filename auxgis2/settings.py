@@ -86,11 +86,14 @@ SPATIALITE_LIBRARY_PATH = 'mod_spatialite'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-        'NAME': os.path.join(BASE_DIR, 'db.spatialite'),
+#        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
+#        'NAME': os.path.join(BASE_DIR, 'db.spatialite'),
+         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+         'NAME': 'auxgis',
+         'USER': 'auxgis',
+         'PASSWORD': 'vY%2t4wx01*h',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
