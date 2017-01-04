@@ -16,6 +16,7 @@ Useful commands
 
 To configure nginx, uWSGI, systemd: https://gist.github.com/TimSC/0193fa92d7fe5b63769eeca5c42fd5d5
 
+* sudo pip install django
 * python manage.py migrate
 * python manage.py collectstatic
 * python manage.py createsuperuser
@@ -23,20 +24,21 @@ To configure nginx, uWSGI, systemd: https://gist.github.com/TimSC/0193fa92d7fe5b
 PostGIS install
 ===============
 
-*sudo apt install postgresql-9.5-postgis-2.2 python-psycopg2
-*sudo su - postgres
-*psql
-*CREATE USER auxgis WITH PASSWORD 'kT3F#$mWHvC3';
-*CREATE DATABASE auxgis;
-*GRANT ALL PRIVILEGES ON DATABASE auxgis to auxgis;
-*CREATE EXTENSION postgis;
-*CREATE EXTENSION postgis_topology;
-*ALTER USER auxgis WITH SUPERUSER;
-*Ctrl-D
-*Ctrl-D
-*sudo xed /etc/postgresql/9.5/main/pg_hba.conf
-*Add a line "local   auxgis          auxgis                                  md5"
-*python manage.py migrate
+* sudo apt install postgresql-9.5-postgis-2.2 python-psycopg2
+* sudo su - postgres
+* psql
+* CREATE USER auxgis WITH PASSWORD 'kT3F#$mWHvC3';
+* CREATE DATABASE auxgis;
+* GRANT ALL PRIVILEGES ON DATABASE auxgis to auxgis;
+* CREATE EXTENSION postgis;
+* CREATE EXTENSION postgis_topology;
+* ALTER USER auxgis WITH SUPERUSER;
+* Ctrl-D
+* Ctrl-D
+* sudo xed /etc/postgresql/9.5/main/pg_hba.conf
+* Add a line above existing lines: "local   auxgis          auxgis                                  md5"
+* Restart postgresql "sudo service postgresql stop" then start
+* python manage.py migrate
 
 Spatialite
 ==========
