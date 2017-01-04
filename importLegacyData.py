@@ -20,7 +20,6 @@ def GetOrCreateAttr(name, attribType, datasetSeries):
 
 class Db(object):
 	def __init__(self):
-		#self.importTime = datetime.datetime.now().replace(tzinfo=importScheduledMonuments.UTC())
 		self.importUser = User.objects.get(username='tim')
 		
 		self.dsLB = DatasetSeries.objects.get(name="Listed Buildings (England)")
@@ -29,17 +28,47 @@ class Db(object):
 		self.smDescription = GetOrCreateAttr("description", "text", self.dsSM)
 		self.smWikipedia = GetOrCreateAttr("wikipedia", "text", self.dsSM)
 		self.smFlickr = GetOrCreateAttr("flickr", "text", self.dsSM)
+		self.smFields = {"description": self.smDescription, "wikipedia": self.smWikipedia, "flickr": self.smFlickr}
 
 		self.lbDescription = GetOrCreateAttr("description", "text", self.dsLB)
 		self.lbWikipedia = GetOrCreateAttr("wikipedia", "text", self.dsLB)
 		self.lbFlickr = GetOrCreateAttr("flickr", "text", self.dsLB)
+		self.lbFields = {"description": self.lbDescription, "wikipedia": self.lbWikipedia, "flickr": self.lbFlickr}
 
 	def StoreEdit(self, listEntry, dataset, ts, key, value):
-		print listEntry, key, value
+		#print listEntry, key, value
+		ds = None
+		fields = None
+		if dataset == "ListedBuildings":
+			ds = self.dsLB
+			fields = self.lbFields
+		if dataset == "ScheduledMonuments":
+			ds = self.dsSM
+			fields = self.smFields
 
+		rec = Record.objects.get(datasetSeries = ds, externalId = listEntry)
+
+		if key == "name":
+			try:
+				nameRec = RecordNameEdit.objects.get(record=rec, data=value, timestamp = ts)
+			except dex.ObjectDoesNotExist:
+				nameRec = RecordNameEdit(record=rec, data=value, timestamp = ts, user = self.importUser)
+				nameRec.save()
+
+			nameRecs = RecordNameEdit.objects.filter(record=rec).order_by("timestamp")
+			latest = nameRecs[len(nameRecs)-1]
+			rec.currentName = latest.data
+			rec.save()
+			print "update name in rec", rec.id
 		
-
-
+		if key in fields:
+			try:
+				nameRec = RecordTextAttribute.objects.get(record = rec, attrib = fields[key], data = value, timestamp = ts)
+			except dex.ObjectDoesNotExist:
+				nameRec = RecordTextAttribute(record = rec, attrib = fields[key], data = value, timestamp = ts, user = self.importUser)
+				nameRec.save()
+			print "update",key,"in rec", rec.id
+			
 def ImportLegacy():
 	db = Db()
 

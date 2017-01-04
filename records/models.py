@@ -69,7 +69,7 @@ class RecordNameEdit(models.Model):
 	user = models.ForeignKey(User)
 
 	def __str__(self):
-		return "RecordNameEdits "+self.record.currentName + ", name"
+		return "RecordNameEdits "+self.data + ", name"
 
 class RecordPositionEdit(models.Model):
 	record = models.ForeignKey(Record, on_delete=models.CASCADE)

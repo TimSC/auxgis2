@@ -44,7 +44,7 @@ class Db(object):
 			self.ds.save()
 
 		try:
-			oldSnapshot = DatasetSnapshot.objects.get(name="20131030")
+			oldSnapshot = DatasetSnapshot.objects.get(name="20131030", datasetSeries=self.ds)
 			oldSnapshot.delete()
 		except dex.ObjectDoesNotExist:
 			pass
