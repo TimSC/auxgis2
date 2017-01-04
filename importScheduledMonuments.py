@@ -33,9 +33,23 @@ def TitleCase(txt):
 	txtSpl = [tmp.capitalize() for tmp in txtSpl]
 	return " ".join(txtSpl)
 
+# A UTC class.
+
+class UTC(datetime.tzinfo):
+    """UTC"""
+
+    def utcoffset(self, dt):
+        return datetime.timedelta(0)
+
+    def tzname(self, dt):
+        return "UTC"
+
+    def dst(self, dt):
+        return datetime.timedelta(0)
+
 class Db(object):
 	def __init__(self):
-		self.importTime = datetime.datetime.now()
+		self.importTime = datetime.datetime(2013, 10, 30, tzinfo=UTC())
 		self.importUser = User.objects.get(username='tim')
 		try:
 			self.ds = DatasetSeries.objects.get(name="Scheduled Monuments (England)")

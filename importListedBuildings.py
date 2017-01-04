@@ -33,7 +33,7 @@ def TitleCase(txt):
 
 class Db(object):
 	def __init__(self):
-		self.importTime = datetime.datetime.now()
+		self.importTime = datetime.datetime(2013, 10, 30, tzinfo=importScheduledMonuments.UTC())
 		self.importUser = User.objects.get(username='tim')
 		try:
 			self.ds = DatasetSeries.objects.get(name="Listed Buildings (England)")
@@ -64,11 +64,16 @@ class Db(object):
 
 		extendedDataFiltered = {} 
 		extendedDataFiltered["Grade"] = extendedData["Grade"]
-		extendedDataFiltered["CaptureSca"] = extendedData["CaptureSca"]
-		extendedDataFiltered["ListDate"] = extendedData["ListDate"]
-		extendedDataFiltered["LegacyUID"] = extendedData["LegacyUID"]
+		if "CaptureSca" in extendedData:
+			extendedDataFiltered["CaptureSca"] = extendedData["CaptureSca"]
+		if "ListDate" in extendedData:
+			extendedDataFiltered["ListDate"] = extendedData["ListDate"]
+		if "LegacyUID" in extendedData:
+			extendedDataFiltered["LegacyUID"] = extendedData["LegacyUID"]
 		if "AmendDate" in extendedData:
-			extendedDataFiltered["AmendDate"] = extendedData["AmendDate"]	
+			extendedDataFiltered["AmendDate"] = extendedData["AmendDate"]
+		if placeName is None:
+			placeName = "Empty"
 
 		rec = DatasetRecord(externalId = externalId, 
 			dataJson = json.dumps(extendedDataFiltered),
