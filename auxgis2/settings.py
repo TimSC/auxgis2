@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import settings_secret
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,12 +21,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'o*fx)mg035)bp+_j2)n!=nqxxg5!ip@pz*^5v2j31m%i_n!#3_'
+SECRET_KEY = settings_secret.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = settings_secret.DEBUG
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = settings_secret.ALLOWED_HOSTS
 
 STATIC_URL = '/static/'
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -89,9 +90,9 @@ DATABASES = {
 #        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
 #        'NAME': os.path.join(BASE_DIR, 'db.spatialite'),
          'ENGINE': 'django.contrib.gis.db.backends.postgis',
-         'NAME': 'auxgis',
-         'USER': 'auxgis',
-         'PASSWORD': 'vY%2t4wx01*h',
+         'NAME': settings_secret.DB_NAME,
+         'USER': settings_secret.DB_USER,
+         'PASSWORD': settings_secret.DB_PASSWORD,
     }
 }
 

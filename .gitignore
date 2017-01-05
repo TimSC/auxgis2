@@ -1,4 +1,5 @@
 *.pyc
 *.sqlite3
 *.spatialite
-
+auxgis2/settings_secret.py
+*.bz2
