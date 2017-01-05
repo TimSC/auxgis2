@@ -93,9 +93,10 @@ def record_edit(request, record_id):
 			if k[:6] != "attrib": continue
 			attribId = int(k[6:])
 			formAttrib = attribsById[attribId]
+			kAttrib = latestAttribs[formAttrib.name][0]
 
-			if (latestAttribs[formAttrib.name][0] is None and len(request.POST[k]) > 0) or \
-				request.POST[k] != latestAttribs[formAttrib.name][0].data:
+			if (kAttrib is None and len(request.POST[k]) > 0) or \
+				(kAttrib is not None and request.POST[k] != kAttrib.data):
 
 				changed = True
 				newAnnot = RecordTextAttribute(record = rec,
