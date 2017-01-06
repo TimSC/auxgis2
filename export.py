@@ -117,7 +117,7 @@ if __name__=="__main__":
 	gen = ExportGenerator()
 	for i, li in enumerate(gen):
 		if i % 1000 ==0:
-			print i
+			print i, li
 		fi.write(li.encode("utf8"))
 	fi.close()
 	
