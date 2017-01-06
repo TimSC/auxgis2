@@ -79,7 +79,9 @@ def record_edit(request, record_id):
 				user = request.user)
 			newAnnot.save()
 
-		if float(request.POST["lon"]) != rec.currentPosition.x or float(request.POST["lat"]) != rec.currentPosition.y:
+		dx = abs(float(request.POST["lon"]) - rec.currentPosition.x)
+		dy = abs(float(request.POST["lat"]) - rec.currentPosition.y)
+		if dx >= 1e-7 or dy >= 1e-7:
 			pos = GEOSGeometry("POINT ({} {})".format(request.POST["lon"], request.POST["lat"]), srid=4326)
 			rec.currentPosition = pos
 			changed = True
