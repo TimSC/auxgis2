@@ -18,5 +18,6 @@ urlpatterns = [
 	url(r'^dataset_series/(?P<dataset_series_id>[0-9]+)/$', views.dataset_series, name='dataset_series'),
 	url(r'^recent_changes/$', views.recent_changes, name='recent_changes'),
 	url(r'^dataset_series/$', views.dataset_series_list, name='dataset_series_list'),
+	url(r'^dataset_series/(?P<dataset_series_id>[0-9]+)/long_names$', views.dataset_series_long_names, name='dataset_series_long_names'),
 	url(r'^$', views.index, name='index'),
 ]

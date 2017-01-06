@@ -1,0 +1,14 @@
+{% include "registration/account.html" %}
+
+<h2>Long Names in {{datasetSeries.name}}</h2>
+
+<form method="POST">
+<table>
+{% for rec in records%}
+<tr><td><a href="/record/{{rec.id}}">{{rec.id}}</a></td><td><input type="text" value="{{rec.currentName}}" size="70"/></td></tr>
+{% endfor %}
+</table>
+</form>
+
+<a href="/">Home</a> <a href="/dataset_series/{{datasetSeries.id}}/">Dataset Series</a>
+
