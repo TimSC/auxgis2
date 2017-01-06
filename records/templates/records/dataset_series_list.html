@@ -1,0 +1,11 @@
+{% include "registration/account.html" %}
+
+<h2>List of Dataset Series</h2>
+
+<ul>
+{% for ds in dataset_series %}
+<li><a href="/dataset_series/{{ds.id}}">{{ds.name}}</a></li>
+{% endfor %}
+</ul>
+
+<a href="/">Home</a>

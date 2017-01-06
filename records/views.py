@@ -245,8 +245,15 @@ def record_history(request, record_id):
 		'snapshots': snapshots, 'edits': edits}, request))
 
 def recent_changes(request):
-	recentChanges = RecentChange.objects.all()
+	timeNow = datetime.datetime.now()
+	recentChanges = RecentChange.objects.order_by("-timestamp")[:100]
 
 	template = loader.get_template('records/recent_changes.html')
 	return HttpResponse(template.render({"recent_changes": recentChanges}, request))
 
+def dataset_series_list(request):
+	ds = DatasetSeries.objects.all()
+
+	template = loader.get_template('records/dataset_series_list.html')
+	return HttpResponse(template.render({"dataset_series": ds}, request))
+	
