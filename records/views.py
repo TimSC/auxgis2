@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.template import loader
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.auth import authenticate, logout, login
@@ -238,4 +238,38 @@ def record_history(request, record_id):
 	template = loader.get_template('records/record_history.html')
 	return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 
 		'snapshots': snapshots, 'edits': edits}, request))
+
+class Gen(object):
+	def __init__(self):
+		self.c = 0
+		self.recs = Record.objects.all()[:20]
+		self.openRootTagSent = False
+		self.closeRootTagSent = False
+
+	def __iter__(self):
+		return self
+
+	def __next__(self):
+		return self.next()
+
+	def next(self):
+		if not self.openRootTagSent:
+			self.openRootTagSent = True
+			return "<export>\n"
+		if self.closeRootTagSent:
+			raise StopIteration()
+
+		self.c += 1
+		try:
+			rec = self.recs[self.c]
+			return "<record>{}</record>\n".format(rec.currentName)
+		except IndexError:
+			self.closeRootTagSent = True
+			return "</export>\n"
+
+def export_view(request):
+	gen = Gen()
+	response = StreamingHttpResponse(gen, content_type="text/xml")
+	response['Content-Disposition'] = 'inline'
+	return response
 
