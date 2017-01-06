@@ -260,8 +260,7 @@ def dataset_series_list(request):
 	
 def dataset_series_long_names(request, dataset_series_id):
 	ds = get_object_or_404(DatasetSeries, id=dataset_series_id)
-	
-	recs = Record.objects.all().order_by(Length("currentName").desc())[:100]
+	recs = Record.objects.filter(datasetSeries = ds).order_by(Length("currentName").desc())[:100]
 
 	template = loader.get_template('records/dataset_series_long_names.html')
 	return HttpResponse(template.render({"datasetSeries": ds, "records": recs}, request))
