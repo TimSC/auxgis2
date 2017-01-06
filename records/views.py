@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from .models import Record, DatasetSnapshot, DatasetRecord, DatasetSeries, AttributeType, RecordTextAttribute, RecordNameEdit, RecordPositionEdit
+from .models import Record, DatasetSnapshot, DatasetRecord, DatasetSeries, AttributeType, RecordTextAttribute, RecordNameEdit, RecordPositionEdit, RecordShapeEdit
 import json
 import re
 import datetime
@@ -239,12 +239,23 @@ def record_history(request, record_id):
 	return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 
 		'snapshots': snapshots, 'edits': edits}, request))
 
-class Gen(object):
+class ExportGenerator(object):
 	def __init__(self):
 		self.c = 0
-		self.recs = Record.objects.all()[:20]
+		self.recs = Record.objects.all()
+		self.recordTextAttributes = RecordTextAttribute.objects.all()
+		self.attributeTypes = AttributeType.objects.all()
+		self.recordNameEdits = RecordNameEdit.objects.all()
+		self.recordShapeEdits = RecordShapeEdit.objects.all()
+		self.recordPositionEdits = RecordPositionEdit.objects.all()
 		self.openRootTagSent = False
 		self.closeRootTagSent = False
+		self.recordsDone = False
+		self.attributeTypesDone = False
+		self.recordNameEditsDone = False
+		self.recordShapeEditsDone = False
+		self.recordPositionEditsDone = False
+		self.recordTextAttributesDone = False
 
 	def __iter__(self):
 		return self
@@ -256,19 +267,69 @@ class Gen(object):
 		if not self.openRootTagSent:
 			self.openRootTagSent = True
 			return "<export>\n"
-		if self.closeRootTagSent:
+		if self.recordTextAttributesDone:
 			raise StopIteration()
 
-		self.c += 1
-		try:
-			rec = self.recs[self.c]
-			return "<record>{}</record>\n".format(rec.currentName)
-		except IndexError:
-			self.closeRootTagSent = True
-			return "</export>\n"
+		if not self.recordsDone:
+			try:
+				rec = self.recs[self.c]
+				self.c += 1
+				return rec.Xml()
+			except IndexError:
+				self.c = 0
+				self.recordsDone = True
+
+		if not self.recordNameEditsDone:
+			try:
+				rne = self.recordNameEdits[self.c]
+				self.c += 1
+				return rne.Xml()
+			except IndexError:
+				self.c = 0
+				self.recordNameEditsDone = True
+
+		if not self.recordPositionEditsDone:
+			try:
+				rne = self.recordPositionEdits[self.c]
+				self.c += 1
+				return rne.Xml()
+			except IndexError:
+				self.c = 0
+				self.recordPositionEditsDone = True
+
+		if not self.recordShapeEditsDone:
+			try:
+				rne = self.recordShapeEdits[self.c]
+				self.c += 1
+				return rne.Xml()
+			except IndexError:
+				self.c = 0
+				self.recordShapeEditsDone = True
+
+		if not self.attributeTypesDone:
+			try:
+				at = self.attributeTypes[self.c]
+				self.c += 1
+				return at.Xml()
+			except IndexError:
+				self.c = 0
+				self.attributeTypesDone = True
+
+		if not self.recordTextAttributesDone:
+			try:
+				rta = self.recordTextAttributes[self.c]
+				self.c += 1
+				return rta.Xml()
+			except IndexError:
+				self.c = 0
+				self.recordTextAttributesDone = True
+
+		self.closeRootTagSent = True
+		return "</export>\n"
+
 
 def export_view(request):
-	gen = Gen()
+	gen = ExportGenerator()
 	response = StreamingHttpResponse(gen, content_type="text/xml")
 	response['Content-Disposition'] = 'inline'
 	return response
