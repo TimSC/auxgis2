@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from .models import Record, DatasetSnapshot, DatasetRecord, DatasetSeries, AttributeType, RecordTextAttribute, RecordNameEdit, RecordPositionEdit, RecordShapeEdit
+from .models import *
 import json
 import re
 import datetime
@@ -110,6 +110,9 @@ def record_edit(request, record_id):
 				latestAttribs[formAttrib.name] = (newAnnot, formAttrib)
 
 		if changed:
+			rchange = RecentChange(record = rec, timestamp = timeNow, user = request.user)
+			rchange.save()
+
 			rec.save()		
 			actionMessage = "Record updated"
 
@@ -241,4 +244,9 @@ def record_history(request, record_id):
 	return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 
 		'snapshots': snapshots, 'edits': edits}, request))
 
+def recent_changes(request):
+	recentChanges = RecentChange.objects.all()
+
+	template = loader.get_template('records/recent_changes.html')
+	return HttpResponse(template.render({"recent_changes": recentChanges}, request))
 

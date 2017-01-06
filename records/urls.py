@@ -16,5 +16,6 @@ urlpatterns = [
 	url(r'^record/(?P<record_id>[0-9]+)/history$', views.record_history, name='record_history'),
 	url(r'^query', views.records_query, name='records_query'),
 	url(r'^datasetseries/(?P<dataset_series_id>[0-9]+)/$', views.dataset_series, name='dataset_series'),
+	url(r'^recent_changes/$', views.recent_changes, name='recent_changes'),
 	url(r'^$', views.index, name='index'),
 ]

@@ -1,0 +1,11 @@
+{% include "registration/account.html" %}
+
+<h2>Recent Changes</h2>
+
+<ul>
+{% for change in recent_changes %}
+<li>{{change.user.username}} updated <a href="/record/{{change.record.id}}">{{change.record.currentName}}</a> at {{change.timestamp}}</li>
+{% endfor %}
+</ul>
+
+<a href="/">Home</a>

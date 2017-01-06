@@ -108,3 +108,12 @@ class RecordPositionEdit(models.Model):
 		return "<RecordPositionEdit id=\"{}\" recordId=\"{}\" lat=\"{}\" lon=\"{}\" timestamp=\"{}\" user=\"{}\" userId=\"{}\"/>\n".format(
 			self.id, self.record.id, self.data.y, self.data.x, self.timestamp, self.user.username, self.user.id)
 
+class RecentChange(models.Model):
+	record = models.ForeignKey(Record, on_delete=models.CASCADE)
+	timestamp = models.DateTimeField('timestamp')	
+	user = models.ForeignKey(User)
+	
+	def __str__(self):
+		return "RecentChange on "+self.record.currentName
+
+
