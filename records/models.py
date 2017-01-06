@@ -10,6 +10,10 @@ class DatasetSeries(models.Model):
 	def __str__(self):
 		return "DatasetSeries "+self.name
 
+	def Xml(self):
+		return u"<DatasetSeries id=\"{}\" name=\"{}\" description=\"{}\" license=\"{}\" />\n".format(
+			self.id, self.name, self.description, self.license)
+
 class Record(models.Model):
 	currentName = models.TextField("current_name")
 	currentPosition = models.PointField("current_position")
@@ -20,7 +24,7 @@ class Record(models.Model):
 		return "Record "+self.currentName
 
 	def Xml(self):
-		return u"<record id=\"{}\" name=\"{}\" dataSeriesId=\"{}\" externalId=\"{}\" lat=\"{}\" lon=\"{}\" />\n".format(
+		return u"<Record id=\"{}\" name=\"{}\" dataSeriesId=\"{}\" externalId=\"{}\" lat=\"{}\" lon=\"{}\" />\n".format(
 			self.id, self.currentName, self.datasetSeries.id, self.externalId, self.currentPosition.y, self.currentPosition.x)
 
 class DatasetSnapshot(models.Model):

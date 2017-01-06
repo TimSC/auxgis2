@@ -15,6 +15,7 @@ from records import views
 class ExportGenerator(object):
 	def __init__(self):
 		self.c = 0
+		self.datasetSeries = DatasetSeries.objects.all()
 		self.recs = Record.objects.all()
 		self.recordTextAttributes = RecordTextAttribute.objects.all()
 		self.attributeTypes = AttributeType.objects.all()
@@ -23,6 +24,8 @@ class ExportGenerator(object):
 		self.recordPositionEdits = RecordPositionEdit.objects.all()
 		self.openRootTagSent = False
 		self.closeRootTagSent = False
+
+		self.datasetSeriesDone = False
 		self.recordsDone = False
 		self.attributeTypesDone = False
 		self.recordNameEditsDone = False
@@ -42,6 +45,15 @@ class ExportGenerator(object):
 			return "<export>\n"
 		if self.recordTextAttributesDone:
 			raise StopIteration()
+
+		if not self.datasetSeriesDone:
+			try:
+				rec = self.datasetSeries[self.c]
+				self.c += 1
+				return rec.Xml()
+			except IndexError:
+				self.c = 0
+				self.datasetSeriesDone = True
 
 		if not self.recordsDone:
 			try:
