@@ -5,6 +5,7 @@
 <form method="POST">
 {% csrf_token %}
 <table>
+<tr><td>Record</td><td>Name</td><td>Description</td></tr>
 {% for recDesc in recsAndDescsZipped%}
 <tr><td><a href="/record/{{recDesc.0.id}}">{{recDesc.0.id}}</a></td>
 <td><input type="text" name="name{{recDesc.0.id}}" value="{{recDesc.0.currentName}}" size="70"/></td>
