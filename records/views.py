@@ -269,6 +269,7 @@ def dataset_series_long_names(request, dataset_series_id):
 	#Process form if necessary
 	actionMessage = None
 	timeNow = datetime.datetime.now()
+	changedRecs = set()
 	if request.user.is_authenticated and "action" in request.POST and descriptionAttrib is not None:
 		for k in request.POST:
 			if k[:4] == "name":
@@ -283,9 +284,7 @@ def dataset_series_long_names(request, dataset_series_id):
 					rne = RecordNameEdit(record = rec, data = request.POST[k], timestamp = timeNow, user = request.user)
 					rne.save()
 
-					#Log recent change
-					rchange = RecentChange(record = rec, timestamp = timeNow, user = request.user)
-					rchange.save()
+					changedRecs.add(rec)
 
 			if k[:11] == "description":
 				descId = int(k[11:])
@@ -299,10 +298,14 @@ def dataset_series_long_names(request, dataset_series_id):
 				if descText != request.POST[k]:
 					descNew = RecordTextAttribute(record = rec, attrib = descriptionAttrib, data = request.POST[k], timestamp = timeNow, user = request.user)
 					descNew.save()
+			
+					changedRecs.add(rec)
 
-					#Log recent change
-					rchange = RecentChange(record = rec, timestamp = timeNow, user = request.user)
-					rchange.save()
+	for rec in changedRecs:
+		#Log recent change
+		rchange = RecentChange(record = rec, timestamp = timeNow, user = request.user)
+		rchange.save()
+		
 
 	recs = Record.objects.filter(datasetSeries = ds).order_by(Length("currentName").desc())[:100]
 
