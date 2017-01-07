@@ -6,7 +6,7 @@
 <h3>Snapshots</h3>
 <table>
 {% for snapshot in snapshots %}
-<tr><td>{{snapshot.name}}</td><td>{{snapshot.description}}</td></tr>
+<tr><td><a href="/snapshot/{{snapshot.id}}">{{snapshot.name}}</a></td><td>{{snapshot.description}}</td></tr>
 {% endfor %}
 </table>
 
@@ -17,5 +17,5 @@
 {% endfor %}
 </table>
 
-<a href="/">Home</a> <a href="/dataset_series/{{datasetSeries.id}}/long_names">Long names</a>
+<a href="/">Home</a> <a href="/dataset_series/{{datasetSeries.id}}/long_names">Long names</a> <a href="/dataset_series/">List of dataset series</a>
 

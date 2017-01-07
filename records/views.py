@@ -321,3 +321,14 @@ def dataset_series_long_names(request, dataset_series_id):
 	template = loader.get_template('records/dataset_series_long_names.html')
 	return HttpResponse(template.render({"datasetSeries": ds, "recsAndDescsZipped": recsAndDescsZipped}, request))
 
+def snapshot(request, snapshot_id):
+	snapshot = get_object_or_404(DatasetSnapshot, id=snapshot_id)
+	records = DatasetRecord.objects.filter(datasetSnapshot = snapshot)[:20]
+
+	zippedDataRecords = []
+	for rec in records:
+		zippedDataRecords.append((rec, json.loads(rec.dataJson)))
+
+	template = loader.get_template('records/snapshot.html')
+	return HttpResponse(template.render({"snapshot": snapshot, "zippedDataRecords": zippedDataRecords}, request))
+

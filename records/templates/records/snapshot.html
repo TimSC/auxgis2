@@ -1,0 +1,14 @@
+{% include "registration/account.html" %}
+
+<h2>{{snapshot.name}}</h2>
+<p>Snapshot of <a href="/dataset_series/{{snapshot.datasetSeries.id}}">{{snapshot.datasetSeries.name}}</a></p>
+<h3>Sample records</h3>
+
+<ul>
+{%for record in zippedDataRecords %}
+<li>{{record.0.externalId}}, {{record.1}}</li>
+{% endfor %}
+</ul>
+
+<a href="/">Home</a>
+
