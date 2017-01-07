@@ -3,12 +3,19 @@
 <h2>Long Names in {{datasetSeries.name}}</h2>
 
 <form method="POST">
+{% csrf_token %}
 <table>
-{% for rec in records%}
-<tr><td><a href="/record/{{rec.id}}">{{rec.id}}</a></td><td><input type="text" value="{{rec.currentName}}" size="70"/></td></tr>
+{% for recDesc in recsAndDescsZipped%}
+<tr><td><a href="/record/{{recDesc.0.id}}">{{recDesc.0.id}}</a></td>
+<td><input type="text" name="name{{recDesc.0.id}}" value="{{recDesc.0.currentName}}" size="70"/></td>
+<td><input type="text" name="description{{recDesc.0.id}}" value="{{recDesc.1}}" size="70"/></td>
+</tr>
 {% endfor %}
 </table>
+{% if user.is_authenticated %}
+<input type="submit" name="action" value="Update"/>
+{% endif %}
 </form>
-
+{{debug}}
 <a href="/">Home</a> <a href="/dataset_series/{{datasetSeries.id}}/">Dataset Series</a>
 

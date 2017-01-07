@@ -10,6 +10,7 @@ from django.db import IntegrityError
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.db.models.functions import Length
+from django.core.exceptions import ObjectDoesNotExist
 from .models import *
 import json
 import re
@@ -260,8 +261,60 @@ def dataset_series_list(request):
 	
 def dataset_series_long_names(request, dataset_series_id):
 	ds = get_object_or_404(DatasetSeries, id=dataset_series_id)
+	try:
+		descriptionAttrib = AttributeType.objects.get(datasetSeries = ds, name="description")
+	except ObjectDoesNotExist:
+		descriptionAttrib = None
+
+	#Process form if necessary
+	actionMessage = None
+	timeNow = datetime.datetime.now()
+	if request.user.is_authenticated and "action" in request.POST and descriptionAttrib is not None:
+		for k in request.POST:
+			if k[:4] == "name":
+				nameId = int(k[4:])
+				#Change if name changed
+				rec = get_object_or_404(Record, id=nameId)
+				if rec.currentName != request.POST[k]:
+					rec.currentName = request.POST[k]
+					rec.save()
+
+					#Log name change history
+					rne = RecordNameEdit(record = rec, data = request.POST[k], timestamp = timeNow, user = request.user)
+					rne.save()
+
+					#Log recent change
+					rchange = RecentChange(record = rec, timestamp = timeNow, user = request.user)
+					rchange.save()
+
+			if k[:11] == "description":
+				descId = int(k[11:])
+				rec = get_object_or_404(Record, id=descId)
+				try:
+					desc = RecordTextAttribute.objects.filter(record=rec, attrib=descriptionAttrib).latest('timestamp')
+					descText = desc.data
+				except ObjectDoesNotExist:
+					descText = ""
+
+				if descText != request.POST[k]:
+					descNew = RecordTextAttribute(record = rec, attrib = descriptionAttrib, data = request.POST[k], timestamp = timeNow, user = request.user)
+					descNew.save()
+
+					#Log recent change
+					rchange = RecentChange(record = rec, timestamp = timeNow, user = request.user)
+					rchange.save()
+
 	recs = Record.objects.filter(datasetSeries = ds).order_by(Length("currentName").desc())[:100]
 
+	descriptions = []
+	for rec in recs:
+		try:
+			desc = RecordTextAttribute.objects.filter(record=rec, attrib=descriptionAttrib).latest('timestamp')
+			descriptions.append(desc.data)
+		except ObjectDoesNotExist:
+			descriptions.append("")
+
+	recsAndDescsZipped = zip(recs, descriptions)
 	template = loader.get_template('records/dataset_series_long_names.html')
-	return HttpResponse(template.render({"datasetSeries": ds, "records": recs}, request))
+	return HttpResponse(template.render({"datasetSeries": ds, "recsAndDescsZipped": recsAndDescsZipped}, request))
 
