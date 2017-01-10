@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.template import loader
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Point, Polygon, MultiPolygon
 from django.contrib.auth import authenticate, logout, login
 from django.contrib.auth.decorators import login_required
 from django.utils.datastructures import MultiValueDictKeyError
@@ -15,6 +15,9 @@ from .models import *
 import json
 import re
 import datetime
+import copy
+from cStringIO import StringIO
+from pyo5m import OsmData
 
 def index(request):
 	recs = Record.objects.all()[:100]
@@ -331,4 +334,103 @@ def snapshot(request, snapshot_id):
 
 	template = loader.get_template('records/snapshot.html')
 	return HttpResponse(template.render({"snapshot": snapshot, "zippedDataRecords": zippedDataRecords}, request))
+
+def PolygonToOsm(poly, osmData, nextId, tags):
+	outerRing = poly[0]
+	metaData = (None, None, None, None, None, None)
+
+	if poly.num_interior_rings == 0:
+		refs = []
+		for pt in outerRing:
+			osmData.nodes.append((nextId[0], metaData, {}, (pt[1], pt[0])))
+			refs.append(nextId[0])
+			nextId[0] -= 1
+		refs.append(refs[0])
+
+		osmData.ways.append((nextId[1], metaData, tags, refs))
+		nextId[1] -= 1
+
+	else:
+		#Create relation
+		refs = []
+		for pt in outerRing:
+			osmData.nodes.append((nextId[0], metaData, {}, (pt[1], pt[0])))
+			refs.append(nextId[0])
+			nextId[0] -= 1
+		refs.append(refs[0])
+
+		osmData.ways.append((nextId[1], metaData, {}, refs))
+		outerId = nextId[1]
+		nextId[1] -= 1
+
+		innerIds = []
+		for holeId in range(1, poly.num_interior_rings+1):
+			hole = poly[holeId]
+			refs = []
+			for pt in hole:
+				osmData.nodes.append((nextId[0], metaData, {}, (pt[1], pt[0])))
+				refs.append(nextId[0])
+				nextId[0] -= 1
+			refs.append(refs[0])
+
+			osmData.ways.append((nextId[1], metaData, {}, refs))
+			innerIds.append(nextId[1])
+			nextId[1] -= 1
+
+		refs = []
+		tags2 = copy.copy(tags)
+		tags2["type"] = "multipolygon"
+		refs.append(("way", outerId, "outer"))
+		for iid in innerIds:
+			refs.append(("way", iid, "inner"))
+		osmData.relations.append((nextId[2], metaData, tags2, refs))
+		nextId[2] -= 1
+
+def GeoCollectionToOsm(shapes, osmData, nextId, tags):
+	for shp in shapes:
+		metaData = (None, None, None, None, None, None)
+		if isinstance(shp, Point):
+			osmData.nodes.append((nextId[0], metaData, tags, (rec.currentPosition.y, rec.currentPosition.x)))
+			nextId[0] -= 1
+		if isinstance(shp, Polygon):
+			PolygonToOsm(shp, osmData, nextId, tags)
+		if isinstance(shp, MultiPolygon):
+			for poly in shp:
+				PolygonToOsm(poly, osmData, nextId, tags)
+
+def export_view(request):
+	try:
+		bbox = map(float, request.GET["bbox"].split(","))
+	except (ValueError, MultiValueDictKeyError):
+		return HttpResponseBadRequest("Bad bbox")
+	try:
+		geomStr = 'POLYGON(( {0} {1}, {0} {3}, {2} {3}, {2} {1}, {0} {1} ))'.format(*bbox)
+	except IndexError:
+		return HttpResponseBadRequest("Bad bbox length")
+	
+	geom = GEOSGeometry(geomStr, srid=4326)
+	recs = Record.objects.filter(currentPosition__within=geom)[:100]
+
+	osmData = OsmData.OsmData()
+
+	nextId = [-1, -1, -1]
+	for rec in recs:
+		tags = {"name": rec.currentName}
+		try:
+			shape = RecordShapeEdit.objects.filter(record = rec).latest("timestamp")
+
+			#Use specified shape
+			shapes = GEOSGeometry(shape.data, srid=4326)
+			GeoCollectionToOsm(shapes, osmData, nextId, tags)
+
+		except ObjectDoesNotExist:
+			#Use simple node position
+			metaData = (None, None, None, None, None, None)
+			osmData.nodes.append((nextId[0], metaData, tags, (rec.currentPosition.y, rec.currentPosition.x)))
+			nextId[0] -= 1
+
+	xmlStr = StringIO()
+	osmData.SaveToOsmXml(xmlStr)
+	
+	return HttpResponse(xmlStr.getvalue(), content_type='application/xml')
 
