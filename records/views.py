@@ -430,7 +430,7 @@ def export_view(request):
 			
 			tags["source"] = "english_heritage_national_heritage_list"
 
-			snapshot = DatasetSnapshot.objects.filter(datasetSeries=rec.datasetSeries)[0]
+			snapshot = DatasetSnapshot.objects.filter(datasetSeries=rec.datasetSeries).latest("timestamp")
 			snapshotRec = DatasetRecord.objects.get(datasetSnapshot = snapshot, externalId = rec.externalId)
 			snapshotData = json.loads(snapshotRec.dataJson)
 			tags["england_listed_building:grade"] = snapshotData["Grade"]

@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from django.contrib.gis.db import models
 from django.contrib.auth.models import User
+import datetime
 
 class DatasetSeries(models.Model):
 	name = models.CharField("name", max_length=200)
@@ -31,6 +32,7 @@ class DatasetSnapshot(models.Model):
 	name = models.CharField("name", max_length=200)
 	description = models.TextField("description")
 	datasetSeries = models.ForeignKey(DatasetSeries, on_delete=models.CASCADE)
+	timestamp = models.DateTimeField('timestamp', default=datetime.datetime.now)
 
 	def __str__(self):
 		return "DatasetSnapshot " + self.name
