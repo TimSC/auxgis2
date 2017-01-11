@@ -412,10 +412,29 @@ def export_view(request):
 	recs = Record.objects.filter(currentPosition__within=geom)[:100]
 
 	osmData = OsmData.OsmData()
+	osmData.bounds = [bbox] 
 
 	nextId = [-1, -1, -1]
 	for rec in recs:
 		tags = {"name": rec.currentName}
+		if rec.datasetSeries.name == "Scheduled Monuments (England)":
+			tags["historic"] = "yes"
+			tags["england_scheduled_monument"] = "yes"
+			tags["england_scheduled_monument:id"] = rec.externalId
+			tags["source"] = "english_heritage_national_heritage_list"
+
+		if rec.datasetSeries.name == "Listed Buildings (England)":
+			tags["historic"] = "yes"
+			tags["england_listed_building"] = "yes"
+			tags["england_listed_building:id"] = rec.externalId
+			
+			tags["source"] = "english_heritage_national_heritage_list"
+
+			snapshot = DatasetSnapshot.objects.filter(datasetSeries=rec.datasetSeries)[0]
+			snapshotRec = DatasetRecord.objects.get(datasetSnapshot = snapshot, externalId = rec.externalId)
+			snapshotData = json.loads(snapshotRec.dataJson)
+			tags["england_listed_building:grade"] = snapshotData["Grade"]
+
 		try:
 			shape = RecordShapeEdit.objects.filter(record = rec).latest("timestamp")
 
