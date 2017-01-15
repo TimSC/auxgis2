@@ -422,12 +422,21 @@ def export_view(request):
 
 	nextId = [-1, -1, -1]
 	for rec in recs:
+		annotations = RecordTextAttribute.objects.filter(record = rec).order_by('timestamp')
+
+		#Consolidate annotations
+		latestAttribs = {}
+		for annotation in annotations:
+			latestAttribs[annotation.attrib.name] = annotation
+
 		tags = {"name": rec.currentName}
 		if rec.datasetSeries.name == "Scheduled Monuments (England)":
 			tags["historic"] = "yes"
 			tags["england_scheduled_monument"] = "yes"
 			tags["england_scheduled_monument:id"] = rec.externalId
 			tags["source"] = "english_heritage_national_heritage_list"
+			if "description" in latestAttribs:
+				tags["description"] = latestAttribs["description"].data
 
 		if rec.datasetSeries.name == "Listed Buildings (England)":
 			tags["historic"] = "yes"
@@ -435,12 +444,15 @@ def export_view(request):
 			tags["england_listed_building:id"] = rec.externalId
 			
 			tags["source"] = "english_heritage_national_heritage_list"
+			if "description" in latestAttribs:
+				tags["description"] = latestAttribs["description"].data
 
 			snapshot = DatasetSnapshot.objects.filter(datasetSeries=rec.datasetSeries).latest("timestamp")
 			snapshotRec = DatasetRecord.objects.get(datasetSnapshot = snapshot, externalId = rec.externalId)
 			snapshotData = json.loads(snapshotRec.dataJson)
 			tags["england_listed_building:grade"] = snapshotData["Grade"]
 
+		#Try to get shape
 		try:
 			shape = RecordShapeEdit.objects.filter(record = rec).latest("timestamp")
 
