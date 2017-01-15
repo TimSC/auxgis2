@@ -1,4 +1,4 @@
-#ogr2ogr -f KML output.kml input.shp
+#ogr2ogr -f kml SM.kml 20131030_ScheduledMonument.shp -dialect sqlite -sql "SELECT ST_Union(geometry), * FROM '20131030_ScheduledMonument' GROUP BY ListEntry"
 
 #0 kml
 #1 Document
@@ -80,14 +80,18 @@ class Db(object):
 		del extendedData["NGR"]
 		del extendedData["Easting"]
 		del extendedData["Northing"]
-		del extendedData["AREA_HA"]
+		del extendedData["AREA_HA"]			
+
 		rec = DatasetRecord(externalId = externalId, 
 			dataJson = json.dumps(extendedData),
 			datasetSnapshot = self.snapshot)
 		rec.save()
 
+		if not shape.is_valid:
+			shape = shape.buffer(0.0)
 		rp = shape.representative_point()
 
+		#Create main record if it does not already exist
 		try:
 			rec2 = Record.objects.get(externalId = externalId)
 		except dex.ObjectDoesNotExist:
@@ -110,19 +114,24 @@ class Db(object):
 				user = self.importUser)
 			newAnnot.save()
 
-			if True: 
-				#Can't do this on spatialite 
-				#https://code.djangoproject.com/ticket/27672
-				if not shape.is_valid:
-					shape = shape.buffer(0.0)
-				shape2 = GeometryCollection([shape])
-				shape3 = GEOSGeometry(buffer(shape2.wkb), srid=4326)
+		#Clear any old shape annotations
+		if True:
+			chkShps = RecordShapeEdit.objects.filter(record = rec2)
+			for shp in chkShps:
+				shp.delete()
+	
+		#Replace with new shape
+		if True:
+			#Can't do this on spatialite for points near zero
+			#https://code.djangoproject.com/ticket/27672
+			shape2 = GeometryCollection([shape])
+			shape3 = GEOSGeometry(buffer(shape2.wkb), srid=4326)
 
-				newAnnot = RecordShapeEdit(record = rec2,
-					data = shape3, 
-					timestamp = self.importTime,
-					user = self.importUser)
-				newAnnot.save()
+			newAnnot = RecordShapeEdit(record = rec2,
+				data = shape3, 
+				timestamp = self.importTime,
+				user = self.importUser)
+			newAnnot.save()
 			
 class ParseKml(object):
 	def __init__(self):
@@ -205,6 +214,7 @@ class ParseKml(object):
 			self.dataBuffer = []
 
 		if name == "Placemark":
+
 			pn = None
 			if self.placeName is not None:
 				pn = TitleCase(self.placeName)
@@ -247,6 +257,7 @@ class ParseKml(object):
 
 			#print self.placeName, self.shape, self.extendedData
 			self.extendedData["name"] = pn
+
 			self.db.HandlePlacemark(pn, shape, self.extendedData)
 			self.extendedData = {}
 			self.placeName = None
@@ -283,11 +294,10 @@ if __name__=="__main__":
 	
 
 	inFi = bz2.BZ2File("SM.kml.bz2", "r")
-	db = Db()
-
-	ep = ParseKml()
-	ep.db = db
 	with transaction.atomic():
+		db = Db()
+		ep = ParseKml()
+		ep.db = db
 		ep.ParseFile(inFi)
 
 	ep.db = None
