@@ -48,9 +48,15 @@ def record(request, record_id):
 	for annotation in annotations:
 		latestAttribs[annotation.attrib.name] = annotation
 
+	#Get latest shape (if any exists)
+	try:
+		latestShape = RecordShapeEdit.objects.filter(record = rec).latest('timestamp').data
+	except ObjectDoesNotExist:
+		latestShape = None
+
 	template = loader.get_template('records/record.html')
 	return HttpResponse(template.render({"record": rec, 'datasetSeries': ds, 
-		'snapshots': snapshots, 'annotations': latestAttribs}, request))
+		'snapshots': snapshots, 'annotations': latestAttribs, 'shape': latestShape}, request))
 
 @login_required
 def record_edit(request, record_id):

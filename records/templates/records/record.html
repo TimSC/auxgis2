@@ -1,5 +1,6 @@
 <html>
 <header>
+<title>Auxgis2: {{record.currentName}}</title>
 </header>
 <body>
 {% include "registration/account.html" %}
@@ -13,6 +14,10 @@
 {% for k, v in annotations.items %}
 <tr><td>{{k}}</td><td>{{v.data}}</td></tr>
 {% endfor %}
+
+{% if shape is not None %}
+<tr><td>shape</td><td style="font-size:6;">{{shape}}</td></tr>
+{% endif %}
 
 </table>
 
