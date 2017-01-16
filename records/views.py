@@ -20,10 +20,11 @@ from cStringIO import StringIO
 from pyo5m import OsmData
 
 def index(request):
-	recs = Record.objects.all()[:100]
+	limit = 100
+	recs = Record.objects.all()[:limit+1]
 
 	output = []
-	for rec in recs:
+	for rec in recs[:limit]:
 		jrec = {}
 		jrec["id"] = rec.id		
 		jrec["name"] = rec.currentName		
@@ -32,7 +33,7 @@ def index(request):
 		output.append(jrec)
 
 	template = loader.get_template('records/index.html')
-	return HttpResponse(template.render({"records": recs, "recordsJson": json.dumps(output)}, request))
+	return HttpResponse(template.render({"records": recs, "recordsJson": json.dumps(output), 'incomplete': len(recs) > limit}, request))
 
 def record(request, record_id):
 	rec = get_object_or_404(Record, id=record_id)
@@ -159,17 +160,22 @@ def records_query(request):
 	except IndexError:
 		return HttpResponseBadRequest("Bad bbox length")
 	
+	limit = 100
 	geom = GEOSGeometry(geomStr, srid=4326)
-	recs = Record.objects.filter(currentPosition__within=geom)[:100]
+	recs = Record.objects.filter(currentPosition__within=geom)[:limit+1]
 
-	output = []
-	for rec in recs:
+	output = {}
+	recOut = []
+	for rec in recs[:limit]:
 		jrec = {}
 		jrec["id"] = rec.id		
 		jrec["name"] = rec.currentName		
 		jrec["lat"] = rec.currentPosition.y
 		jrec["lon"] = rec.currentPosition.x
-		output.append(jrec)
+		recOut.append(jrec)
+
+	output["records"] = recOut
+	output["incomplete"] = len(recs) > limit
 
 	return JsonResponse(output, safe=False)	
 
